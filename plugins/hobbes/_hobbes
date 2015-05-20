@@ -1,0 +1,95 @@
+#compdef hobbes
+
+# Hobbes autocompletion for oh-my-zsh
+# Requires: Hobbes installed
+# Author: Noah (@npe9) via Azaan's (@aeonazaan) Docker completion
+
+
+# ----- Helper functions
+# Output a selectable list of all running hobbes containers
+__hobbes_images() {
+    declare -a img_cmd
+    img_cmd=($(ls $LEVIATHAN/shell/*.xml))
+}
+
+# Output a selectable list of all enclaves
+__hobbes_all_enclaves() {
+    declare -a cont_cmd
+    cont_cmd=($(hobbes list_enclaves | awk 'NR>1{print $NF":[CON("$1")"$2"("$3")]"}'))
+    if [[  'X$cont_cmd' != 'X' ]]
+        _describe 'containers' cont_cmd
+}
+
+# output a selectable list of all hobbes images
+__hobbes_enclaves() {
+    declare -a enc_cmd
+    enc_cmd=($(ls /dev/pisces-enclave*))
+}
+
+# ----- Commands
+# Seperate function for each command, makes extension easier later
+# ---------------------------
+__create_enclave() {
+    __hobbes_images
+}
+
+__destroy_enclave() {
+	__hobbes_enclaves
+}
+
+__list_enclaves() {
+	# no arguments
+}
+
+__list_segments() {
+	# no arguments
+}
+
+__launch_app() {
+
+    #_arguments \
+    #    '(-t,--tag=)'{-t,--tag=}'[Repository name (and optionally a tag) to be applied to the resulting image in case of success]' 
+    # __hobbes_enclaves
+}
+
+__list_processes() {
+	# no arguments
+}
+
+# end commands ---------
+# ----------------------
+
+# TODO(npe) why not redo hobbes shell to coincide with docker?
+local -a _1st_arguments
+_1st_arguments=(
+    "create_enclave":"Create Native Enclave"
+    "destroy_enclave":"Destroy Native Enclave"
+    "list_enclaves":"List all running enclaves"
+    "list_segments":"List all exported xpmem segments"
+    "launch_app":"Launch an application in an enclave"
+    "list_processes":"List all processes"
+)
+
+_arguments '*:: :->command'
+
+if (( CURRENT == 1 )); then
+    _describe -t commands "hobbes command" _1st_arguments
+    return
+fi
+
+local -a _command_args
+case "$words[1]" in
+    create_enclave)
+       __create_enclave ;;
+    destroy_enclave)
+        __destroy_enclave ;;
+    list_enclaves)
+        __list_enclaves ;;
+    list_segments)
+        __list_segments ;;
+    launch_app)
+        __launch_app ;;
+    list_processes)
+        __list_processes ;;
+esac
+
